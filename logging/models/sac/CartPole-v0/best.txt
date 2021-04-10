@@ -1,0 +1,46 @@
+<src.utils.config.Config object at 0x153b52750>
+
+class SACActor(torch.nn.Module):
+	def __init__(self, state_size, action_size, config, use_discrete=False):
+		super().__init__()
+		input_layer, actor_hidden = config.INPUT_LAYER, config.ACTOR_HIDDEN
+		self.discrete = use_discrete and type(action_size) != tuple
+		self.layer1 = torch.nn.Linear(state_size[-1], input_layer) if len(state_size)==1 else Conv(state_size, input_layer) if len(state_size)==3 else get_ref(state_size, input_layer, config)
+		self.layer2 = torch.nn.Linear(input_layer, actor_hidden)
+		self.layer3 = torch.nn.Linear(actor_hidden, actor_hidden)
+		self.action_mu = torch.nn.Linear(actor_hidden, action_size[-1])
+		self.action_sig = torch.nn.Linear(actor_hidden, action_size[-1])
+		self.apply(lambda m: torch.nn.init.xavier_normal_(m.weight) if type(m) in [torch.nn.Conv2d, torch.nn.Linear] else None)
+		self.dist = lambda m,s: torch.distributions.Categorical(m.softmax(-1)) if self.discrete else torch.distributions.Normal(m,s)
+		
+	def forward(self, state, action=None, sample=True):
+		state = self.layer1(state).relu()
+		state = self.layer2(state).relu()
+		state = self.layer3(state).relu()
+		action_mu = self.action_mu(state)
+		action_sig = self.action_sig(state).clamp(-5,0).exp()
+		dist = torch.distributions.Normal(action_mu, action_sig)
+		action = dist.rsample() if sample else action_mu
+		action_out = gsoftmax(action_mu, hard=False) if self.discrete else action.tanh()
+		log_prob = torch.log(action_out+1e-6) if self.discrete else dist.log_prob(action)-torch.log(1-action_out.pow(2)+1e-6)
+		return action_out, log_prob
+
+class SACCritic(torch.nn.Module):
+	def __init__(self, state_size, action_size, config):
+		super().__init__()
+		input_layer, critic_hidden = config.INPUT_LAYER, config.CRITIC_HIDDEN
+		self.net_state = torch.nn.Linear(state_size[-1], input_layer) if len(state_size)==1 else Conv(state_size, input_layer) if len(state_size)==3 else get_ref(state_size, input_layer, config)
+		self.net_action = torch.nn.Linear(action_size[-1], input_layer)
+		self.net_layer1 = torch.nn.Linear(2*input_layer, critic_hidden)
+		self.net_layer2 = torch.nn.Linear(critic_hidden, critic_hidden)
+		self.q_value = torch.nn.Linear(critic_hidden, 1)
+		self.apply(lambda m: torch.nn.init.xavier_normal_(m.weight) if type(m) in [torch.nn.Conv2d, torch.nn.Linear] else None)
+
+	def forward(self, state, action):
+		state = self.net_state(state).relu()
+		net_action = self.net_action(action).relu()
+		net_layer = torch.cat([state, net_action], dim=-1)
+		net_layer = self.net_layer1(net_layer).relu()
+		net_layer = self.net_layer2(net_layer).relu()
+		q_value = self.q_value(net_layer)
+		return q_value
