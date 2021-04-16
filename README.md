@@ -1,5 +1,5 @@
 # CS229-Final-Project
-Final Project for CS 229: Machine Learning
+Final Project for CS 229: Machine Learning. Project proposal can be found in [proposal/CS_229_Project_Proposal.pdf](/proposal/CS_229_Project_Proposal.pdf).
 
 ## Installing
 
