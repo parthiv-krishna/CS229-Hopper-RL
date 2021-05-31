@@ -1,9 +1,9 @@
 """Wheeled Inverted Pendulum by Aaron Schultz for optimal control"""
 import numpy as np
 from scipy.integrate import solve_ivp
-from numpy import sin, cos, pi
 import jax.numpy as jnp
 from jax import jacfwd, jit
+from gym import spaces
 
 class WIPEnv():
 
@@ -19,16 +19,21 @@ class WIPEnv():
 
     g = 9.81
 
+    MAX_TORQUE = 1.0 # (Nm)
+
     def __init__(self):
         self.viewer = None
         self.state = None
+        self.action_space = spaces.Box(-self.MAX_TORQUE, self.MAX_TORQUE, shape=(1,), dtype=np.float32)
+        high = np.array([np.pi/2, np.finfo(np.float32).max, np.finfo(np.float32).max, np.finfo(np.float32).max], dtype=np.float32)
+        self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     def reset(self, state=None):
         if state == None:
             self.state = np.array([0.0, 0.0, 0.0, 0.0])
         else:
             self.state = state
-        return self.state
+        return np.array(self.state)
 
     def dynamics(self, x, u):
         Jp = self.MOI_PENDULUM
@@ -60,12 +65,7 @@ class WIPEnv():
         s_augmented = np.append(x, u)
 
         solve = solve_ivp(self._dsdt, [0, self.dt], s_augmented, t_eval=[self.dt])
-
-        xn = np.zeros(4)
-        xn[0] = solve.y[0, 0]
-        xn[1] = solve.y[1, 0]
-        xn[2] = solve.y[2, 0]
-        xn[3] = solve.y[3, 0]
+        xn = solve.y[:4,0]
 
         return xn
 
@@ -78,10 +78,13 @@ class WIPEnv():
         #     u += self.np_random.uniform(-self.torque_noise_max, self.torque_noise_max)
 
         self.state = self.f(x, u)
-        
-        self.state += np.random.multivariate_normal([0, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.00001, 0], [0, 0, 0, 0.00001]])
 
-        return self.state
+        self.state += np.random.multivariate_normal([0, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.001, 0], [0, 0, 0, 0.001]])
+
+        done = bool(np.abs(x[0]) > np.pi/2)
+        reward = 1.0 if not done else 0.0
+
+        return np.array(self.state), reward, done, {}
 
     def _dsdt(self, t, x_augmented):
         u = x_augmented[-1]

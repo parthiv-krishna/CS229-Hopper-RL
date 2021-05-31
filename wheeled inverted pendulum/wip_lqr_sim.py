@@ -27,9 +27,9 @@ time.sleep(1)
 start = time.monotonic()
 for i in range(1000):
     u = - L @ (state - goal_state)
-    state = env.step(u)
+    state, reward, done, _ = env.step(u)
     # print(state)
-    # print(u)
+    print(u)
     env.render()
     if i == 500:
         goal_state = np.array([0.0, 0.0, 0.0, -16.0])
