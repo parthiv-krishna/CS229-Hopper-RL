@@ -6,13 +6,13 @@ import time
 x0 = [0.0, 0.0, 0.0, 0.0]
 
 Q = np.array([[1, 0, 0, 0],
-              [0, 1, 0, 0],
+              [0, 0, 0, 0],
               [0, 0, 1, 0],
               [0, 0, 0, 1]])
 R = 2000*np.eye(1)
 
 env = WIPEnv()
-goal_state = np.array([0.0, 80.0, 0.0, 0.0])
+goal_state = np.array([0.0, 0.0, 0.0, 16.0])
 f, A, B = env.linearized_dynamics(goal_state, 0.0)
 
 P = solve_continuous_are(A, B, Q, R)
@@ -32,7 +32,7 @@ for i in range(1000):
     # print(u)
     env.render()
     if i == 500:
-        goal_state = np.array([0.0, 0.0, 0.0, 0.0])
+        goal_state = np.array([0.0, 0.0, 0.0, -16.0])
 end = time.monotonic()
 print(end-start)
 env.close()

@@ -3,7 +3,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from numpy import sin, cos, pi
 import jax.numpy as jnp
-from jax import jacfwd
+from jax import jacfwd, jit
 
 class WIPEnv():
 
@@ -51,9 +51,9 @@ class WIPEnv():
         return jnp.array([dtheta, dphi, ddtheta, ddphi])
     
     def linearized_dynamics(self, x_bar, u_bar):
-        f = self.dynamics(x_bar, u_bar)
-        A = jacfwd(self.dynamics, 0)(x_bar, u_bar)
-        B = jacfwd(self.dynamics, 1)(x_bar, u_bar)[np.newaxis].T
+        f = dynamics(x_bar, u_bar)
+        A = jacfwd(dynamics, 0)(x_bar, u_bar)
+        B = jacfwd(dynamics, 1)(x_bar, u_bar)[np.newaxis].T
         return f, A, B
 
     def f(self, x, u):
@@ -86,7 +86,7 @@ class WIPEnv():
     def _dsdt(self, t, x_augmented):
         u = x_augmented[-1]
         x = x_augmented[:-1]
-        dx = self.dynamics(x, u)
+        dx = dynamics(x, u)
 
         return np.append(dx, 0)
 
@@ -156,3 +156,32 @@ def bound(x, m, M=None):
         m = m[0]
     # bound x between min (m) and Max (M)
     return min(max(x, m), M)
+
+@jit
+def dynamics(x, u):
+    LENGTH_PENDULUM = 0.15 # (m)
+    MASS_PENDULUM = 0.5 # (kg) mass of pendulum
+    MOI_PENDULUM = MASS_PENDULUM * LENGTH_PENDULUM**2 # (Nm) moment of intertia with respect to the pivot
+    RADIUS_WHEEL = 0.02 # (m)
+    MASS_WHEEL =  0.02# (kg)
+    MOI_WHEEL = 0.5 * MASS_WHEEL * RADIUS_WHEEL**2 # (Nm)
+
+    g = 9.81
+    Jp = MOI_PENDULUM
+    mp = MASS_PENDULUM
+    l = LENGTH_PENDULUM / 2
+    r = RADIUS_WHEEL
+    mw = MASS_WHEEL
+    Jw = MOI_WHEEL
+
+    theta = x[0]
+    phi = x[1]
+    dtheta = x[2]
+    dphi = x[3]
+    den = Jp * (Jw + mp * r**2 + mw * r**2) - l**2 * mp**2 * r**2 * jnp.cos(theta)**2
+    ddtheta_num = (Jw + mp * r**2 + mw * r**2) * (-u + mp * g * l * jnp.sin(theta)) - mp * l * r * jnp.cos(theta) * (u + mp * l * r * dtheta**2 * jnp.sin(theta))
+    ddphi_num = - mp * l * r * jnp.cos(theta) * (-u + mp * g * l * jnp.sin(theta)) + Jp * (u + mp * l * r * dtheta**2 * jnp.sin(theta))
+    ddtheta = ddtheta_num / den
+    ddphi = ddphi_num / den
+
+    return jnp.array([dtheta, dphi, ddtheta, ddphi])
