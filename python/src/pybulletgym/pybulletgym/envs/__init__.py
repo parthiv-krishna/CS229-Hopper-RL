@@ -107,6 +107,12 @@ register(
 	max_episode_steps=1000
 	)
 
+register(
+	id='StanfordHopperSimpleEnv-v0',
+	entry_point='pybulletgym.envs.roboschool.envs.locomotion.stanford_hopper_simple_env:StanfordHopperSimpleEnv',
+	max_episode_steps=1000
+	)
+
 # mujoco envs
 register(
 	id='InvertedPendulumMuJoCoEnv-v0',

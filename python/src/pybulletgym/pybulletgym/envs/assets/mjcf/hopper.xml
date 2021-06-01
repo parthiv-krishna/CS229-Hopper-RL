@@ -16,24 +16,40 @@
       <joint armature="0" axis="1 0 0" damping="0" limited="false" name="ignore1" pos="0 0 0" stiffness="0" type="slide"/>
       <joint armature="0" axis="0 0 1" damping="0" limited="false" name="ignore2" pos="0 0 0" ref="1.25" stiffness="0" type="slide"/>
       <joint armature="0" axis="0 1 0" damping="0" limited="false" name="ignore3" pos="0 0 0" stiffness="0" type="hinge"/>
-      <geom fromto="0 0 1.45 0 0 1.05" name="torso_geom" size="0.05" type="capsule"/>
-      <body name="thigh">
-        <joint axis="0 -1 0" name="thigh_joint" pos="0 0 1.05" range="-150 0" type="hinge"/>
-        <geom fromto="0 0 1.05 0 0 0.6" name="thigh_geom" size="0.05" type="capsule"/>
-        <body name="leg">
-          <joint axis="0 -1 0" name="leg_joint" pos="0 0 0.6" range="-150 0" type="hinge"/>
-          <geom fromto="0 0 0.6 0 0 0.1" name="leg_geom" size="0.04" type="capsule"/>
-          <body name="foot">
-            <joint axis="0 -1 0" name="foot_joint" pos="0 0 0.1" range="-45 45" type="hinge"/>
-            <geom fromto="-0.13 0 0.1 0.26 0 0.1" name="foot_geom" size="0.06" type="capsule"/>
+      <geom fromto="0 0.32 0.65 0 0 0.65" name="torso_geom" size="0.1" type="capsule"/>
+      <!-- <geom fromto="0 0.32 1.05 0 0 1.05" name="torso_geom" type="box"/> -->
+      <body name="left_thigh">
+        <!-- <joint axis="0 -1 0" name="left_thigh_joint" pos="0 0 1.05" range="-1 1" type="hinge"/> -->
+        <geom fromto="0 0 0.65 0 0 0.6" name="left_thigh_geom" size="0.05" type="capsule"/>
+        <body name="left_leg">
+          <joint axis="0 0 1" name="left_leg_joint" pos="0 0 0.6" range="-0.1 0" type="slide"/>
+          <geom fromto="0 0 0.6 0 0 0.1" name="left_leg_geom" size="0.04" type="capsule"/>
+          <body name="left_foot">
+            <joint axis="0 -1 0" name="left_foot_joint" pos="0 0 0.1" limited="false" type="hinge"/>
+            <geom fromto="0 0 0.1 0 0 0.1" name="left_foot_geom" size="0.06" type="capsule" mass="0.5"/>
+          </body>
+        </body>
+      </body>
+      <body name="right_thigh">
+        <!-- <joint axis="0 -1 0" name="right_thigh_joint" pos="0 0 1.05" range="-1 1" type="hinge"/> -->
+        <geom fromto="0 0.32 0.65 0 0.32 0.6" name="right_thigh_geom" size="0.05" type="capsule"/>
+        <body name="right_leg">
+          <joint axis="0 0 1" name="right_leg_joint" pos="0 0 0.6" range="-0.1 0" type="slide"/>
+          <geom fromto="0 0.32 0.6 0 0.32 0.1" name="right_leg_geom" size="0.04" type="capsule"/>
+          <body name="right_foot">
+            <joint axis="0 -1 0" name="right_foot_joint" pos="0 0 0.1" limited="false" type="hinge"/>
+            <geom fromto="0 0.32 0.1 0 0.32 0.1" name="right_foot_geom" size="0.06" type="capsule" mass="0.5"/>
           </body>
         </body>
       </body>
     </body>
   </worldbody>
   <actuator>
-    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="thigh_joint"/>
-    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="leg_joint"/>
-    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="foot_joint"/>
+    <!-- <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="left_thigh_joint"/> -->
+    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="left_leg_joint"/>
+    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.01" joint="left_foot_joint"/>
+    <!-- <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="left_thigh_joint"/> -->
+    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="200.0" joint="right_leg_joint"/>
+    <motor ctrllimited="true" ctrlrange="-1.0 1.0" gear="0.01" joint="right_foot_joint"/>
   </actuator>
 </mujoco>

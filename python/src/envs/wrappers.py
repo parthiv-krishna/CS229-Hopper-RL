@@ -46,7 +46,7 @@ class EnsembleEnv():
 		envs[0].render(**kwargs)
 
 	def close(self, **kwargs):
-		self.env.close(**kwargs)
+		if self.env: self.env.close(**kwargs)
 		for env in self.envs: env.close()
 		for env in self.test_envs: env.close()
 

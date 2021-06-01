@@ -129,6 +129,13 @@ register(
     reward_threshold=900,
 )
 
+register(
+    id='WIP-v0',
+    entry_point='gym.envs.box2d:WIPEnv',
+    max_episode_steps=1000,
+    reward_threshold=200,
+)
+
 # Toy Text
 # ----------------------------------------
 
