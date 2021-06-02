@@ -1,5 +1,6 @@
 import pybullet
-import gym, gym.spaces, gym.utils
+import gym, gym.utils
+from src.envs.Gym.gym.spaces import MultiDiscrete, Discrete, Box, Dict
 import numpy as np
 import os, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -22,9 +23,9 @@ class XmlBasedRobot:
 		self.robot_body = None
 
 		high = np.ones([action_dim])
-		self.action_space = gym.spaces.Box(-high, high)
+		self.action_space = Box(-high, high)
 		high = np.inf * np.ones([obs_dim])
-		self.observation_space = gym.spaces.Box(-high, high)
+		self.observation_space = Box(-high, high)
 
 		self.robot_name = robot_name
 		self.self_collision = self_collision

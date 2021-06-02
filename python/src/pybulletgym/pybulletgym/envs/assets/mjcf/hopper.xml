@@ -27,6 +27,8 @@
           <body name="left_foot">
             <joint axis="0 -1 0" name="left_foot_joint" pos="0 0 0.1" limited="false" type="hinge"/>
             <geom fromto="0 0 0.1 0 0 0.1" name="left_foot_geom" size="0.06" type="capsule" mass="0.5"/>
+            <!-- <joint axis="0 -1 0" name="left_foot_joint" pos="0 0 0.1" range="-150 0" type="hinge"/>
+            <geom fromto="0 0 0.1 0 0 0.05" name="left_foot_geom" size="0.06" type="capsule" mass="0.5"/> -->
           </body>
         </body>
       </body>
@@ -39,6 +41,8 @@
           <body name="right_foot">
             <joint axis="0 -1 0" name="right_foot_joint" pos="0 0 0.1" limited="false" type="hinge"/>
             <geom fromto="0 0.32 0.1 0 0.32 0.1" name="right_foot_geom" size="0.06" type="capsule" mass="0.5"/>
+            <!-- <joint axis="0 -1 0" name="right_foot_joint" pos="0 0 0.1" range="-150 0" type="hinge"/>
+            <geom fromto="0 0.32 0.1 0 0.32 0.05" name="right_foot_geom" size="0.06" type="capsule" mass="0.5"/> -->
           </body>
         </body>
       </body>

@@ -23,12 +23,14 @@ class GymTrainer():
 		self.total_rewards = []
 		
 	def start(self):
-		if self.config.trial: self.trial(agent=self.agent.load_model(self.checkpoint))
+		if self.config.trial:
+			for i in range(10):
+				self.trial(agent=self.agent.load_model(self.checkpoint), fname=i)
 		elif self.config.rank==self.config.split: self.evaluate()
 		elif self.config.rank==0: self.train()
 	
-	def trial(self, agent, step=0, eps=0, stats={}, time_sleep=0.0):
-		rollouts = rollout(self.envs, agent, eps=eps, render=self.config.render, time_sleep=time_sleep, print_action=False)
+	def trial(self, agent, step=0, eps=0, stats={}, time_sleep=0.0, fname="abc"):
+		rollouts = rollout(self.envs, agent, eps=eps, render=self.config.render, time_sleep=time_sleep, print_action=False, filename="data/ddpg_" + str(fname) +".txt")
 		self.total_rewards.append(np.mean(rollouts, axis=-1))
 		if self.config.trial: return print(f"Reward: {self.total_rewards[-1]} [{np.std(rollouts)}]")
 		if len(self.total_rewards) % self.config.SAVE_AT==0: agent.save_model(self.checkpoint)
@@ -94,8 +96,11 @@ def parse_args(envs, agents, frameworks):
 	return parser.parse_args()
 
 if __name__ == "__main__":
+    # import gym
+	# print(gym.envs.registry.all())
 	args = parse_args(all_envs, all_agents, all_frameworks)
 	make_env, agent_cls, config = get_config(args.env_name, args.agent_name, args.framework, args.render)
+	print(make_env, agent_cls, config)
 	rank, size = set_rank_size(args.tcp_rank, args.tcp_ports)
 	split = max(int((size-1)*args.train_prop)+1, 1)
 	config.update(rank=rank, size=size, split=split, **args.__dict__)

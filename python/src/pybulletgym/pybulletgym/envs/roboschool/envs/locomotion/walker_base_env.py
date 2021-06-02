@@ -50,9 +50,17 @@ class WalkerBaseBulletEnv(BaseBulletEnv):
     joints_at_limit_cost = -0.1	 # discourage stuck joints
 
     def step(self, a):
+        try:
+            self.nsteps += 1
+        except AttributeError:
+            self.nsteps = 1
+
         if not self.scene.multiplayer:  # if multiplayer, action first applied to all robots, then global step() called, then _step() for all robots with the same actions
             self.robot.apply_action(a)
             self.scene.global_step()
+        
+        old_angle = self.robot.body_rpy[1]
+        old_xpos = self.robot.body_xyz[0]
 
         state = self.robot.calc_state()  # also calculates self.joints_at_limit
 
@@ -94,13 +102,41 @@ class WalkerBaseBulletEnv(BaseBulletEnv):
             print("feet_collision_cost")
             print(feet_collision_cost)
 
+        angle = 0
+        angle = -1*abs(self.robot.body_rpy[1])
+        dangle = -1*abs(self.robot.body_rpy[1] - old_angle)
+
+        xpos = -6*abs(self.robot.body_xyz[0])
+        dxpos = -6*abs(self.robot.body_xyz[0] - old_xpos)
+
+        vel = self.robot.body_xyz[0] - old_xpos
+        if self.nsteps < 200:
+            veldiff = abs(vel - 0.32) / 50
+        elif self.nsteps < 250:
+            veldiff = abs(vel)
+        elif self.nsteps < 300:
+            veldiff = abs(vel + 0.32) / 50
+        else:
+            veldiff = abs(vel)
+
+        velcontrol = -500*veldiff
+
+
+        # bonus = 10*(angle < 0.05) + 10*(xpos < 0.01)
+        bonus = 0
         self.rewards = [
             alive,
-            -10*abs(self.robot.body_rpy[1]),
+            bonus,
+            angle,
+            dangle,
+            velcontrol,
+            # xpos,
+            # dxpos,
             # progress,
-            electricity_cost,
-            joints_at_limit_cost,
-            feet_collision_cost
+            # electricity_cost,
+            # joints_at_limit_cost,
+            # feet_collision_cost,
+            0
         ]
         if debugmode:
             print("rewards=")
@@ -110,7 +146,14 @@ class WalkerBaseBulletEnv(BaseBulletEnv):
         self.HUD(state, a, done)
         self.reward += sum(self.rewards)
 
-        return state, sum(self.rewards), bool(done), {}
+        # print(xpos)
+        try:
+            self.data.append((vel, self.robot.body_rpy[1]))
+        except AttributeError:
+            self.data = []
+            self.data.append((vel, self.robot.body_rpy[1]))
+
+        return state, sum(self.rewards), bool(done), {"data": self.data}
 
     def camera_adjust(self):
         x, y, z = self.body_xyz

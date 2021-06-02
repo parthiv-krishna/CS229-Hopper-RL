@@ -21,10 +21,10 @@ def seed_all(env, seed=None):
 	return seed
 
 def load_module(name):
-    mod_name, attr_name = name.split(":")
-    mod = importlib.import_module(mod_name.replace("gym", "src.envs.Gym.gym"))
-    fn = getattr(mod, attr_name)
-    return fn
+	mod_name, attr_name = name.split(":")
+	mod = importlib.import_module(mod_name.replace("gym", "src.envs.Gym.gym"))
+	fn = getattr(mod, attr_name)
+	return fn
 
 def rmdir(path, exts=[".pth", ".txt"]):
 	[os.remove(f"{path}/{f}") for f in os.listdir(path) if np.any([f.endswith(x) for x in exts])]
@@ -54,20 +54,26 @@ def make_video(imgs, filename, fps=30):
 		video.write(rgb.astype(np.uint8))
 	video.release()
 
-def rollout(env, agent, eps=None, render=False, sample=True, time_sleep=None, print_action=False):
+def rollout(env, agent, eps=None, render=False, sample=True, time_sleep=None, print_action=False, filename="data/dump.txt"):
+	env.render("human")
 	state = env.reset()
 	total_reward = None
 	done = None
+	data = []
 	with torch.no_grad():
 		while not np.all(done):
 			env_action, a = agent.get_env_action(env, state, eps, sample)[0:2]
-			state, reward, ndone, _ = env.step(env_action)
+			state, reward, ndone, data = env.step(env_action)
 			reward = np.equal(done,False).astype(np.float32)*reward if done is not None else reward
 			done = np.array(ndone) if done is None else np.logical_or(done, ndone)
 			total_reward = reward if total_reward is None else total_reward + reward
 			if print_action: print(f"Reward: {reward}, Env_a: {env_action}, Action: {a}")
 			if time_sleep: time.sleep(time_sleep)
 			if render: env.render()
+	print(len(data))
+	with open(filename, 'w') as f:
+		for d in data[0]["data"]:
+			f.write(str(d[0]) + ',' + str(d[1]) + '\n')
 	return total_reward
 
 def dict_update(d, u):

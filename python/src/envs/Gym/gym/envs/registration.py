@@ -14,7 +14,10 @@ env_id_re = re.compile(r'^(?:[\w:-]+\/)?([\w:.-]+)-v(\d+)$')
 
 def load(name):
     mod_name, attr_name = name.split(":")
-    mod = importlib.import_module(mod_name.replace("gym", "src.envs.Gym.gym"))
+    if "pybullet" not in mod_name:
+        mod = importlib.import_module(mod_name.replace("gym", "src.envs.Gym.gym"))
+    else:
+        mod = importlib.import_module(mod_name)
     fn = getattr(mod, attr_name)
     return fn
 
