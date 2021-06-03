@@ -11,6 +11,9 @@ from src.utils.rand import RandomAgent
 from src.utils.logger import Logger
 np.set_printoptions(precision=3)
 
+FILENAME = "data/train/velocity_ddpg.csv"
+# FILENAME = None
+
 class GymTrainer():
 	def __init__(self, make_env, agent_cls, config):
 		ports = list(range(1+config.rank, config.split if config.rank==0 else config.size))
@@ -24,8 +27,10 @@ class GymTrainer():
 		
 	def start(self):
 		if self.config.trial:
-			for i in range(10):
-				self.trial(agent=self.agent.load_model(self.checkpoint), fname=i)
+			# for i in range(10):
+			# 	self.trial(agent=self.agent.load_model(self.checkpoint), fname=i)
+			while True:
+				self.trial(agent=self.agent.load_model(self.checkpoint))
 		elif self.config.rank==self.config.split: self.evaluate()
 		elif self.config.rank==0: self.train()
 	
@@ -36,6 +41,12 @@ class GymTrainer():
 		if len(self.total_rewards) % self.config.SAVE_AT==0: agent.save_model(self.checkpoint)
 		if self.total_rewards[-1] >= max(self.total_rewards): agent.save_model(self.checkpoint, "best")
 		if self.logger: self.logger.log(f"Step: {step:7d}, Reward: {self.total_rewards[-1]:9.3f} [{np.std(rollouts):8.3f}], Avg: {np.mean(self.total_rewards, axis=0):9.3f} ({stats.get('eps',eps):.3f})", {**stats, **{f"{k}_e":v for k,v in agent.get_stats().items()}})
+		if FILENAME: 
+			with open(FILENAME, 'a+') as f:
+				# print(len(self.total_rewards))
+				# f.write(f"{step:d},{self.total_rewards[-1]:.3f},{np.mean(self.total_rewards, axis=0):.3f}\n")
+				f.write(f"{step:d},{np.mean(self.total_rewards, axis=0):.3f}\n")
+
 
 	def train(self):
 		states = self.envs.reset(train=True)
@@ -45,6 +56,7 @@ class GymTrainer():
 			self.agent.train(states, actions, next_states, rewards, dones)
 			if s%self.config.TRIAL_AT==0 and self.conn is None: self.trial(self.agent, s, self.config.EPS_MIN, self.agent.get_stats())
 			if s%self.envs.max_steps==0 and self.conn is not None: self.conn.broadcast([{"STEP": s, "PATH": self.agent.save_model(f"{s+1}_{SEED}", net="temp"), "DIR": f"{s+1}_{SEED}", "NET": "temp", "STATS": self.agent.get_stats()}])
+
 			states = next_states
 
 	def evaluate(self):
