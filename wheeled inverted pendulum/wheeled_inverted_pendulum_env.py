@@ -79,7 +79,7 @@ class WIPEnv():
 
         self.state = self.f(x, u)
 
-        self.state += np.random.multivariate_normal([0, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.01, 0], [0, 0, 0, 0.01]])
+        #self.state += np.random.multivariate_normal([0, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.01, 0], [0, 0, 0, 0.01]])
 
         done = bool(np.abs(x[0]) > np.pi/2)
         reward = 1.0 if not done else 0.0
