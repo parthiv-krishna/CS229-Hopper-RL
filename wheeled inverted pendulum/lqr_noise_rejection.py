@@ -6,15 +6,15 @@ import time
 x0 = [0.0, 0.0, 0.0, 0.0]
 
 Q = np.array([[1, 0, 0, 0],
-              [0, 0, 0, 0],
+              [0, 1, 0, 0],
               [0, 0, 1, 0],
               [0, 0, 0, 1]])
-R = 8000*np.eye(1)
+R = 5000*np.eye(1)
 
 T = 500
 
 env = WIPEnv()
-goal_state = np.array([0.0, 0.0, 0.0, 16.0])
+goal_state = np.array([0.0, 0.0, 0.0, 0.0])
 f, A, B = env.linearized_dynamics(goal_state, 0.0)
 
 P = solve_continuous_are(A, B, Q, R)
@@ -33,21 +33,6 @@ for t in range(T):
     state, reward, done, _ = env.step(u)
     data[t] = [t * dt, state[3]*env.RADIUS_WHEEL, state[0]]
     env.render()
-    if t == 200:
-        goal_state = np.array([0.0, 0.0, 0.0, 0.0])
-        f, A, B = env.linearized_dynamics(goal_state, 0.0)
-        P = solve_continuous_are(A, B, Q, R)
-        L = np.linalg.inv(R) @ B.T @ P
-    if t == 250:
-        goal_state = np.array([0.0, 0.0, 0.0, -16.0])
-        f, A, B = env.linearized_dynamics(goal_state, 0.0)
-        P = solve_continuous_are(A, B, Q, R)
-        L = np.linalg.inv(R) @ B.T @ P
-    if t == 450:
-        goal_state = np.array([0.0, 0.0, 0.0, 0.0])
-        f, A, B = env.linearized_dynamics(goal_state, 0.0)
-        P = solve_continuous_are(A, B, Q, R)
-        L = np.linalg.inv(R) @ B.T @ P
 end = time.monotonic()
 print(end-start)
 env.close()

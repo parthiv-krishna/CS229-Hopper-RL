@@ -7,7 +7,7 @@ from gym import spaces
 
 class WIPEnv():
 
-    dt = 0.01
+    dt = 0.02
 
    
     LENGTH_PENDULUM = 0.15 # (m)
@@ -79,7 +79,7 @@ class WIPEnv():
 
         self.state = self.f(x, u)
 
-        self.state += np.random.multivariate_normal([0, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.001, 0], [0, 0, 0, 0.001]])
+        self.state += np.random.multivariate_normal([0, 0, 0, 0], [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.01, 0], [0, 0, 0, 0.01]])
 
         done = bool(np.abs(x[0]) > np.pi/2)
         reward = 1.0 if not done else 0.0
